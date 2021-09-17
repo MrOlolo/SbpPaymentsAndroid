@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lbl_complete_payment_in_bank_app" formatted="true">Выберите банк\nдля подтверждения оплаты</string>
+    <string name="hint_completePayment_in_bank_app" formatted="true">Выбрав банк, Вы перейдете в мобильное\nприложение для завершения оплаты.</string>
+    <string name="lbl_no_bank_apps" formatted="true">Отсутствует банковское\nприложение</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="item_back_ripple">#4c000000</color>
+    <color name="item_back">#f4f4f4</color>
+</resources>
