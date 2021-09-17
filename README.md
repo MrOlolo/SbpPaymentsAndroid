@@ -3,7 +3,7 @@
 [![](https://jitpack.io/v/MrOlolo/SbpPaymentsAndroid.svg)](https://jitpack.io/#MrOlolo/SbpPaymentsAndroid)
 
 ### Preview
-![preview](art/preview.jpg)
+<img src="art/preview.jpg" height="200">
 
 ### Description
 
