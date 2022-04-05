@@ -21,6 +21,7 @@ public class BankAppsAdapter extends RecyclerView.Adapter<BankAppsAdapter.ViewHo
     private List<ResolveInfo> apps;
     ClickListener clickListener;
     String link;
+    int textColor;
 
     public interface ClickListener {
         /**
@@ -32,9 +33,10 @@ public class BankAppsAdapter extends RecyclerView.Adapter<BankAppsAdapter.ViewHo
         void onClick(Activity context, String link, ResolveInfo info);
     }
 
-    public BankAppsAdapter(ClickListener clickListener, String link) {
+    public BankAppsAdapter(ClickListener clickListener, String link, int textColor) {
         this.clickListener = clickListener;
         this.link = link;
+        this.textColor = textColor;
     }
 
     @NonNull
@@ -68,13 +70,14 @@ public class BankAppsAdapter extends RecyclerView.Adapter<BankAppsAdapter.ViewHo
             super(itemView);
             imgLogo = itemView.findViewById(R.id.imgLogo);
             tvName = itemView.findViewById(R.id.tvName);
+            tvName.setTextColor(textColor);
         }
 
         public void bindData(ResolveInfo info) {
             itemView.setOnClickListener(v -> {
                 v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                 if (clickListener != null)
-                    clickListener.onClick((Activity) v.getContext(),link, info);
+                    clickListener.onClick((Activity) v.getContext(), link, info);
             });
 
             tvName.setText(info.activityInfo.loadLabel(tvName.getContext().getPackageManager()));

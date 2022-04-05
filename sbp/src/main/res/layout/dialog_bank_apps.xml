@@ -15,6 +15,7 @@
 
         android:layout_marginTop="16dp"
         android:src="@drawable/ic_arrow_down_swipe"
+        android:layout_marginBottom="10dp"
         tools:ignore="ContentDescription" />
 
     <ImageView

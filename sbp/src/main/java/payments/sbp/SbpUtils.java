@@ -1,11 +1,16 @@
 package payments.sbp;
 
+import static androidx.core.content.res.ResourcesCompat.getDrawable;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,10 +19,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,22 +45,27 @@ public class SbpUtils {
      * variable for holding known bank apps packages
      */
     private String predefinedApps = "com.idamob.tinkoff.android;com.openbank;com.webmoney.my;ru.mkb.mobile;ru.vtb24.mobilebanking.android;logo.com.mbanking;ru.skbbank.ib;ru.wildberries.razz";
-   // private Activity context;
+    // private Activity context;
     private BottomSheetDialog dialog;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private SbpUtils() {
-       // this.context = context;
+        // this.context = context;
         Repository repository = RemoteRepository.getInstance();
         repository.loadAppPackages(this::onPackages);
 
     }
 
     public static SbpUtils getInstance() {
-        if(instance==null){
-            instance= new SbpUtils();
+        if (instance == null) {
+            instance = new SbpUtils();
         }
         return instance;
+    }
+
+    private Boolean isDarkColor(int colorCode) {
+        double a = (0.2126 * Color.red(colorCode) + 0.7152 * Color.green(colorCode) + 0.0722 * Color.blue(colorCode)) / 255;
+        return a < 0.5;
     }
 
     public void onPackages(List<String> packages) {
@@ -69,7 +79,7 @@ public class SbpUtils {
         handler.postDelayed(this::hideDialog, 500);
         if (TextUtils.isEmpty(link))
             return;
-        startBankApp(context,link, info);
+        startBankApp(context, link, info);
 
     }
 
@@ -95,7 +105,7 @@ public class SbpUtils {
      *
      * @param link pyment url we've got from QR ("https://qr.nspk.ru/......")
      */
-    public List<ResolveInfo> getBankApps(Activity context,String link) {
+    public List<ResolveInfo> getBankApps(Activity context, String link) {
         //STEP 1: LOADING BANK APPS BY PROVIDED LINK
 
         //load list of apps that can  process  url "http://". Usually it is installed browsers
@@ -148,7 +158,7 @@ public class SbpUtils {
 
         }
 
-       // Log.d(SbpUtils.class.getSimpleName(), "APPS: " + appsPackages);
+        // Log.d(SbpUtils.class.getSimpleName(), "APPS: " + appsPackages);
         return resolvedPrintList;
     }
 
@@ -171,15 +181,23 @@ public class SbpUtils {
 
     /**
      * open dialog with available bank applications. After user select one, payment  process will be started
+     *
      * @param link payment url we've got from QR ("https://qr.nspk.ru/......") shold have parameter "redirect"
      */
-    public void showSbpListDialog(Activity context,String link) {
+    public void showSbpListDialog(Activity context, String link) {
+        showSbpListDialog(context, link, 0xFF000000, 0xFFFFFFFF);
+    }
+
+    /**
+     * open dialog with available bank applications. After user select one, payment  process will be started
+     *
+     * @param link payment url we've got from QR ("https://qr.nspk.ru/......") shold have parameter "redirect"
+     */
+    public void showSbpListDialog(Activity context, String link, int textCode, int backgroundCode) {
+        List<ResolveInfo> bankApps = getBankApps(context, link);
 
 
-        List<ResolveInfo> bankApps = getBankApps(context,link);
-
-
-        BankAppsAdapter appsAdapter = new BankAppsAdapter(this::onClick, link);
+        BankAppsAdapter appsAdapter = new BankAppsAdapter(this::onClick, link, textCode);
         appsAdapter.setApps(bankApps);
         hideDialog();
         @SuppressLint("InflateParams") View dialogView = context.getLayoutInflater().inflate(R.layout.dialog_bank_apps, null);
@@ -206,13 +224,27 @@ public class SbpUtils {
         LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.app_item_divider, null));
+        dividerItemDecoration.setDrawable(getDrawable(context.getResources(), R.drawable.app_item_divider, null));
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setAdapter(appsAdapter);
         recyclerView.setVisibility(bankApps.isEmpty() ? View.GONE : View.VISIBLE);
         View emptyView = dialogView.findViewById(R.id.tvNoApps);
+        ((TextView) dialogView.findViewById(R.id.tvNoApps)).setTextColor(textCode);
+        ((TextView) dialogView.findViewById(R.id.tvCompletePayment)).setTextColor(textCode);
         emptyView.setVisibility(bankApps.isEmpty() ? View.VISIBLE : View.GONE);
+        dialogView.findViewById(R.id.tvHint).setBackgroundColor(backgroundCode);
+        ((TextView) dialogView.findViewById(R.id.tvHint)).setTextColor(textCode);
         dialog.setContentView(dialogView);
+        @SuppressLint("UseCompatLoadingForDrawables") Drawable customDrawable = context.getResources().getDrawable(R.drawable.rounded_dialog);
+        customDrawable.setColorFilter(backgroundCode, PorterDuff.Mode.SRC_IN);
+
+        if (isDarkColor(backgroundCode)) {
+            ((ImageView) dialogView.findViewById(R.id.imgSbp)).setImageResource(R.drawable.sbp_light_logo);
+        }
+        dialogView.setBackground(customDrawable);
+
+//        ((View) dialogView.getParent()).se()
+//        ((View) dialogView.getParent()).setBackgroundColor(0xFF293232);
         dialog.show();
     }
 }
