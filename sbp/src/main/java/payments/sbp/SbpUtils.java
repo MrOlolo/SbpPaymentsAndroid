@@ -37,7 +37,10 @@ import payments.sbp.repository.Repository;
 import payments.sbp.repository.remote.RemoteRepository;
 import payments.sbp.ui.BankAppsAdapter;
 
+
 public class SbpUtils {
+
+    Callback callback;
 
     private static final String APP_SEPARATOR = ";";
     private static SbpUtils instance;
@@ -79,6 +82,10 @@ public class SbpUtils {
         handler.postDelayed(this::hideDialog, 500);
         if (TextUtils.isEmpty(link))
             return;
+        if (callback != null) {
+            callback.callingBack(true);
+            callback = null;
+        }
         startBankApp(context, link, info);
 
     }
@@ -91,6 +98,10 @@ public class SbpUtils {
 
     public void cleanup() {
         hideDialog();
+        if (callback != null) {
+            callback.callingBack(false);
+            callback = null;
+        }
         handler.removeCallbacksAndMessages(null);
 
     }
@@ -184,8 +195,8 @@ public class SbpUtils {
      *
      * @param link payment url we've got from QR ("https://qr.nspk.ru/......") shold have parameter "redirect"
      */
-    public void showSbpListDialog(Activity context, String link) {
-        showSbpListDialog(context, link, 0xFF000000, 0xFFFFFFFF);
+    public void showSbpListDialog(Activity context, String link, Callback callback) {
+        showSbpListDialog(context, link, 0xFF000000, 0xFFFFFFFF, callback);
     }
 
     /**
@@ -193,15 +204,16 @@ public class SbpUtils {
      *
      * @param link payment url we've got from QR ("https://qr.nspk.ru/......") shold have parameter "redirect"
      */
-    public void showSbpListDialog(Activity context, String link, int textCode, int backgroundCode) {
+    public void showSbpListDialog(Activity context, String link, int textCode, int backgroundCode, Callback callback) {
         List<ResolveInfo> bankApps = getBankApps(context, link);
-
 
         BankAppsAdapter appsAdapter = new BankAppsAdapter(this::onClick, link, textCode);
         appsAdapter.setApps(bankApps);
         hideDialog();
+
         @SuppressLint("InflateParams") View dialogView = context.getLayoutInflater().inflate(R.layout.dialog_bank_apps, null);
 
+        this.callback = callback;
         dialog = new BottomSheetDialog(context, R.style.AppBottomSheetDialogTheme);
         dialog.setCancelable(true);
 
@@ -217,6 +229,13 @@ public class SbpUtils {
             FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) tvHint.getLayoutParams();
             lp.gravity = Gravity.BOTTOM;
 
+        });
+
+        dialog.setOnDismissListener(d -> {
+            if (this.callback != null) {
+                this.callback.callingBack(false);
+                this.callback = null;
+            }
         });
 
         RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);

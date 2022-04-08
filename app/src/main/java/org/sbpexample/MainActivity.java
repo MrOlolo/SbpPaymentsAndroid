@@ -1,10 +1,10 @@
 package org.sbpexample;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,7 +13,7 @@ import payments.sbp.SbpUtils;
 
 public class MainActivity extends AppCompatActivity {
     //this link should be obtained after  QR scanning from
-    private String sbpLink = "https://qr.nspk.ru/AD10006K1GQ7788G9ACAAM970SGCOLNM?type=02&&sum=1100&cur=RUB&crc=CD70";
+    private final String sbpLink = "https://qr.nspk.ru/AD10006K1GQ7788G9ACAAM970SGCOLNM?type=02&&sum=1100&cur=RUB&crc=CD70";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +28,9 @@ public class MainActivity extends AppCompatActivity {
             //TODO add exception handling code
         }
         String finalLink = link;
-        v.setOnClickListener(view -> SbpUtils.getInstance().showSbpListDialog(MainActivity.this, finalLink));
+        v.setOnClickListener(view -> SbpUtils.getInstance().
+                showSbpListDialog(MainActivity.this, finalLink,
+                        success -> Log.d("t", success.toString())));
     }
 
     @Override
